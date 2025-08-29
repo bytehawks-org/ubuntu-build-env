@@ -1,50 +1,20 @@
-# Dockerfile per ambiente di sviluppo completo
-# Base: Ubuntu LTS per compatibilità packaging .deb
+# Dockerfile for Ubuntu-based build environment
+# Base: Ubuntu LTS for .deb packaging compatibility
 FROM ubuntu:24.04
 
-# Evita prompt interattivi durante l'installazione
+ARG OS_ARCH=amd64
+
+# Avoid interactive prompts during installation
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Aggiorna il sistema e installa dipendenze base
-RUN apt-get update && apt-get install -y \
-    # Strumenti di compilazione C/C++
-    build-essential \
-    gcc \
-    g++ \
-    make \
-    cmake \
-    autoconf \
-    automake \
-    libtool \
-    pkg-config \
-    # Parser generators e strumenti di analisi lessicale
-    bison \
-    flex \
-    byacc \
-    # Strumenti aggiuntivi per build complesse
-    ninja-build \
-    meson \
-    # Librerie di sviluppo comuni
-    libssl-dev \
-    libffi-dev \
-    zlib1g-dev \
-    libbz2-dev \
-    libreadline-dev \
-    libsqlite3-dev \
-    libncurses5-dev \
-    libncursesw5-dev \
-    libgdbm-dev \
-    libc6-dev \
-    libnss3-dev \
-    # Strumenti per packaging Debian
-    debhelper \
-    dh-make \
-    devscripts \
-    fakeroot \
-    lintian \
-    quilt \
-    dpkg-dev \
-    # Utility generali
+# Define software versions
+ARG PACKER_VERSION=1.14.1
+ARG TERRAFORM_VERSION=1.13.1
+ARG GO_VERSION=1.25.0
+
+# Update and upgrade system and install base dependencies
+RUN apt-get update && apt-get dist-upgrade -y && apt-get install -y \
+    # General utilities
     curl \
     wget \
     git \
@@ -55,149 +25,119 @@ RUN apt-get update && apt-get install -y \
     gzip \
     jq \
     yq \
-    # Strumenti per virtualizzazione
-    qemu-utils \
-    # AWS CLI dependencies
-    python3 \
-    python3-full \
-    python3-pip \
-    python3-flake8-black \
-    python3-pytest-flake8 \
-    python3-pytest-flake8-path \
-    python3-pytest \
-    python3-pytest-cov \
-    # GitLab CI/CD tools
     openssh-client \
     rsync \
     ca-certificates \
     gnupg \
     lsb-release \
     bash \
-    # Container tools per GitLab
     apt-transport-https \
     software-properties-common \
-    # Pulizia cache
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    ansible \
+    # C/C++ build tools
+    build-essential \
+    gcc \
+    g++ \
+    make \
+    cmake \
+    autoconf \
+    automake \
+    libtool \
+    pkg-config \
+    # Additional compiling tools and interpreters
+    bison \
+    flex \
+    byacc \
+    ninja-build \
+    meson \
+    qemu-utils \
+    # Debian/Ubuntu packaging tools
+    debhelper \
+    dh-make \
+    devscripts \
+    fakeroot \
+    lintian \
+    quilt \
+    dpkg-dev \
+    # Python3 interpreters and tools
+    python3 \
+    python3-full \
+    python3-pip 
 
-# Installa AWS CLI v2
-RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
-    && unzip awscliv2.zip \
-    && ./aws/install \
-    && rm -rf aws awscliv2.zip
-
-# Installa Packer
-ARG PACKER_VERSION=1.14.1
-RUN wget -O packer.zip "https://releases.hashicorp.com/packer/${PACKER_VERSION}/packer_${PACKER_VERSION}_linux_amd64.zip" \
-    && unzip -o packer.zip -d /opt/packer \
-    && chmod +x /opt/packer/packer \
-    && ln -s /opt/packer/packer /usr/local/bin/packer \
-    && rm packer.zip
-
-# Installa Terraform (spesso usato insieme a Packer)
-ARG TERRAFORM_VERSION=1.13.1
-RUN wget -O terraform.zip "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip" \
-    && unzip -o terraform.zip -d /opt/terraform \
-    && chmod +x /opt/terraform/terraform \
-    && ln -s /opt/terraform/terraform /usr/local/bin/terraform \
-    && rm terraform.zip 
-
-# Installa Docker CLI per GitLab CI (Docker-in-Docker scenarios)
+# Install Docker CLI for GitLab CI (Docker-in-Docker scenarios)
 RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
-    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null \
+    && echo "deb [arch=${OS_ARCH} signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null \
     && apt-get update \
     && apt-get install -y docker-ce-cli \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Installa GitLab CLI (glab)
-#ARG GLAB_VERSION=1.67.0
-#RUN wget -O glab.tar.gz "https://gitlab.com/gitlab-org/cli/-/releases/v${GLAB_VERSION}/downloads/glab_${GLAB_VERSION}_darwin_amd64.tar.gz" \
-#    && tar -xzf glab.tar.gz -C /opt/glab \
-#    && chmod +x /opt/glab/bin/glab \
-#    && ln -s /opt/glab/bin/glab /usr/local/bin/glab
+# Install GO compiler
+RUN curl -LO "https://go.dev/dl/go${GO_VERSION}.linux-${OS_ARCH}.tar.gz" \
+    && tar -C /usr/local -xzf "go${GO_VERSION}.linux-${OS_ARCH}.tar.gz" \
+    && rm "go${GO_VERSION}.linux-${OS_ARCH}.tar.gz"
 
-# Installa SonarScanner CLI
-ARG SONAR_SCANNER_VERSION=7.2.0.5079
-RUN wget -O sonar-scanner.zip "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux-x64.zip" \
-    && unzip sonar-scanner.zip -d /opt \
-    && mv /opt/sonar-scanner-${SONAR_SCANNER_VERSION}-linux-x64 /opt/sonar-scanner \
-    && rm sonar-scanner.zip \
-    && ln -s /opt/sonar-scanner/bin/sonar-scanner /usr/local/bin/sonar-scanner
+# Install AWS CLI v2
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscliv2.zip \
+    && unzip /tmp/awscliv2.zip -d /tmp \
+    && /tmp/aws/install \
+    && rm -rf /tmp/awscliv2.zip /tmp/aws
 
-# Installa Trivy (vulnerability scanner)
-RUN wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor -o /usr/share/keyrings/trivy-archive-keyring.gpg \
-    && echo "deb [signed-by=/usr/share/keyrings/trivy-archive-keyring.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | tee -a /etc/apt/sources.list.d/trivy.list \
-    && apt-get update \
-    && apt-get install -y trivy \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+# Install Hashicorp Packer
+RUN wget -O /tmp/packer.zip "https://releases.hashicorp.com/packer/${PACKER_VERSION}/packer_${PACKER_VERSION}_linux_${OS_ARCH}.zip" \
+    && unzip -o /tmp/packer.zip -d /tmp/packer \
+    && install -m 755 /tmp/packer/packer /usr/local/bin/packer \
+    && rm -rf /tmp/packer.zip /tmp/packer
 
-# Installa Grype (vulnerability scanner alternativo)
-RUN curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+# Install Hashicorp Terraform
+RUN wget -O /tmp/terraform.zip "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_${OS_ARCH}.zip" \
+    && unzip -o /tmp/terraform.zip -d /tmp/terraform \
+    && install -m 755 /tmp/terraform/terraform /usr/local/bin/terraform \
+    && rm /tmp/terraform.zip /tmp/terraform
 
-# Installa Syft (SBOM generator)
-RUN curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
-
-# Installa Hadolint (Dockerfile linter)
-ARG HADOLINT_VERSION=v2.12.0
-RUN wget -O /usr/local/bin/hadolint "https://github.com/hadolint/hadolint/releases/download/${HADOLINT_VERSION}/hadolint-Linux-x86_64" \
-    && chmod +x /usr/local/bin/hadolint
-
-# Installa OSV-Scanner (Open Source Vulnerability scanner)
-RUN curl -L https://github.com/google/osv-scanner/releases/latest/download/osv-scanner_linux_amd64 -o /usr/local/bin/osv-scanner \
-    && chmod +x /usr/local/bin/osv-scanner
-
-# Installa CodeQL CLI (GitHub's semantic code analysis)
-ARG CODEQL_VERSION=2.22.4
-RUN wget -O codeql.zip "https://github.com/github/codeql-cli-binaries/releases/download/v${CODEQL_VERSION}/codeql-linux64.zip" \
-    && unzip codeql.zip -d /opt \
-    && rm codeql.zip \
-    && ln -s /opt/codeql/codeql /usr/local/bin/codeql
-
-# Crea utente dedicato per le build
+# Create dedicated user for build
 RUN groupadd -r builder && useradd -r -g builder -m -s /bin/bash builder \
-    # Aggiunge builder ai gruppi necessari
+    # Adds builder to necessary groups
     && usermod -a -G sudo builder \
-    # Configura sudo senza password per builder
+    # Configures sudo without password for builder
     && echo "builder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
-    # Crea directory per build temporanee
+    # Creates directory for temporary builds
     && mkdir -p /home/builder/{workspace,tmp,build} \
     && chown -R builder:builder /home/builder \
-    # Configura fakeroot per l'utente builder
+    # Configures fakeroot for user builder
     && mkdir -p /home/builder/.fakeroot \
     && chown -R builder:builder /home/builder/.fakeroot
 
-# Installa Rust per l'utente builder
+# Switch to user builder and set workdir
 USER builder
 WORKDIR /home/builder
 
-# Installa Rust tramite rustup per l'utente builder
+# Install latest Rust for user builder
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
     && echo 'source ~/.cargo/env' >> ~/.bashrc
 
-# Aggiunge Rust al PATH per l'utente builder
-ENV PATH="/home/builder/.cargo/bin:${PATH}"
+# Adds Rust to PATH for user builder
+ENV PATH="/home/builder/.cargo/bin:/usr/local/go/bin:${PATH}"
 
-# Installa i componenti Rust per l'utente builder
+# Installs Rust components for user builder
 RUN ~/.cargo/bin/rustup component add \
     rustfmt \
     clippy \
     rust-src \
     && ~/.cargo/bin/cargo install cargo-deb
 
-# Configura Git per l'utente builder
+# Configures Git for user builder
 RUN git config --global user.name "Bytehawks GitHub autobuilder" \
     && git config --global user.email "autobuild@bytehawks.org" \
     && git config --global init.defaultBranch main
 
-# Variabili d'ambiente per l'utente builder
+# Environment variables for user builder
 ENV DEBFULLNAME="Bytehawks GitHub autobuilder"
 ENV DEBEMAIL="autobuild@bytehawks.org"
 ENV TMPDIR="/home/builder/tmp"
 ENV HOME="/home/builder"
 ENV SONAR_SCANNER_HOME="/opt/sonar-scanner"
-ENV PATH="${SONAR_SCANNER_HOME}/bin:${PATH}"
 
-# Comando predefinito
+
+# Default command
 CMD ["/bin/bash"]

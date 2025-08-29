@@ -93,7 +93,7 @@ RUN wget -O /tmp/packer.zip "https://releases.hashicorp.com/packer/${PACKER_VERS
 RUN wget -O /tmp/terraform.zip "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_${OS_ARCH}.zip" \
     && unzip -o /tmp/terraform.zip -d /tmp/terraform \
     && install -m 755 /tmp/terraform/terraform /usr/local/bin/terraform \
-    && rm /tmp/terraform.zip /tmp/terraform
+    && rm -rf /tmp/terraform.zip /tmp/terraform
 
 # Create dedicated user for build
 RUN groupadd -r builder && useradd -r -g builder -m -s /bin/bash builder \
@@ -101,12 +101,10 @@ RUN groupadd -r builder && useradd -r -g builder -m -s /bin/bash builder \
     && usermod -a -G sudo builder \
     # Configures sudo without password for builder
     && echo "builder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers \
-    # Creates directory for temporary builds
-    && mkdir -p /home/builder/{workspace,tmp,build} \
-    && chown -R builder:builder /home/builder \
-    # Configures fakeroot for user builder
-    && mkdir -p /home/builder/.fakeroot \
-    && chown -R builder:builder /home/builder/.fakeroot
+    # Creates directory for temporary builds and configure fakeroot
+    && mkdir -p /home/builder/{workspace,tmp,build,.fakeroot} \
+    && chown builder:builder /home/builder/{workspace,tmp,build,.fakeroot} \
+    && chmod 775 /home/builder/{workspace,tmp,build,.fakeroot}
 
 # Switch to user builder and set workdir
 USER builder

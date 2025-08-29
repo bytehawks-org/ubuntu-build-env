@@ -111,12 +111,12 @@ RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /
 #    && chmod +x /usr/local/bin/glab
 
 # Installa SonarScanner CLI
-ARG SONAR_SCANNER_VERSION=7.2.0.5079
-RUN wget -O sonar-scanner.zip "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip" \
-    && unzip sonar-scanner.zip -d /opt \
-    && mv /opt/sonar-scanner-${SONAR_SCANNER_VERSION}-linux /opt/sonar-scanner \
-    && rm sonar-scanner.zip \
-    && ln -s /opt/sonar-scanner/bin/sonar-scanner /usr/local/bin/sonar-scanner
+#ARG SONAR_SCANNER_VERSION=7.2.0.5079
+#RUN wget -O sonar-scanner.zip "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip" \
+#    && unzip sonar-scanner.zip -d /opt \
+#    && mv /opt/sonar-scanner-${SONAR_SCANNER_VERSION}-linux /opt/sonar-scanner \
+#    && rm sonar-scanner.zip \
+#    && ln -s /opt/sonar-scanner/bin/sonar-scanner /usr/local/bin/sonar-scanner
 
 # Installa Trivy (vulnerability scanner)
 RUN wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor -o /usr/share/keyrings/trivy-archive-keyring.gpg \
@@ -133,12 +133,12 @@ RUN curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh |
 RUN curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
 
 # Installa PMD (static analysis per Java/PHP/altri linguaggi)
-ARG PMD_VERSION=7.16.0
-RUN wget -O pmd.zip "https://github.com/pmd/pmd/releases/download/pmd_releases%2F${PMD_VERSION}/pmd-dist-${PMD_VERSION}-bin.zip" \
-    && unzip pmd.zip -d /opt \
-    && mv /opt/pmd-bin-${PMD_VERSION} /opt/pmd \
-    && rm pmd.zip \
-    && ln -s /opt/pmd/bin/pmd /usr/local/bin/pmd
+#ARG PMD_VERSION=7.16.0
+#RUN wget -O pmd.zip "https://github.com/pmd/pmd/releases/download/pmd_releases%2F${PMD_VERSION}/pmd-dist-${PMD_VERSION}-bin.zip" \
+#    && unzip pmd.zip -d /opt \
+#    && mv /opt/pmd-bin-${PMD_VERSION} /opt/pmd \
+#    && rm pmd.zip \
+#    && ln -s /opt/pmd/bin/pmd /usr/local/bin/pmd
 
 # Installa Hadolint (Dockerfile linter)
 ARG HADOLINT_VERSION=v2.12.0

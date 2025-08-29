@@ -66,26 +66,13 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     gnupg \
     lsb-release \
+    bash \
     # Container tools per GitLab
     apt-transport-https \
     software-properties-common \
     # Pulizia cache
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
-
-# Installa Rust tramite rustup
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
-    && echo 'source ~/.cargo/env' >> ~/.bashrc
-
-# Aggiunge Rust al PATH per questa sessione
-ENV PATH="/root/.cargo/bin:${PATH}"
-
-# Installa i componenti Rust più comuni
-RUN ~/.cargo/bin/rustup component add \
-    rustfmt \
-    clippy \
-    rust-src \
-    && ~/.cargo/bin/cargo install cargo-deb
 
 # Installa AWS CLI v2
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
@@ -96,16 +83,18 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
 # Installa Packer
 ARG PACKER_VERSION=1.14.1
 RUN wget -O packer.zip "https://releases.hashicorp.com/packer/${PACKER_VERSION}/packer_${PACKER_VERSION}_linux_amd64.zip" \
-    && unzip packer.zip -d /usr/local/bin \
-    && rm packer.zip \
-    && chmod +x /usr/local/bin/packer
+    && unzip -o packer.zip -d /opt/packer \
+    && chmod +x /opt/packer/packer \
+    && ln -s /opt/packer/packer /usr/local/bin/packer \
+    && rm packer.zip
 
 # Installa Terraform (spesso usato insieme a Packer)
 ARG TERRAFORM_VERSION=1.13.1
 RUN wget -O terraform.zip "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip" \
-    && unzip terraform.zip -d /usr/local/bin \
-    && rm terraform.zip \
-    && chmod +x /usr/local/bin/terraform
+    && unzip -o terraform.zip -d /opt/terraform \
+    && chmod +x /opt/terraform/terraform \
+    && ln -s /opt/terraform/terraform /usr/local/bin/terraform \
+    && rm terraform.zip 
 
 # Installa Docker CLI per GitLab CI (Docker-in-Docker scenarios)
 RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
@@ -178,15 +167,15 @@ RUN wget -O codeql.zip "https://github.com/github/codeql-cli-binaries/releases/d
     && ln -s /opt/codeql/codeql /usr/local/bin/codeql
 
 # Crea directory di lavoro
-WORKDIR /workspace
+#WORKDIR /workspace
 
 # Variabili d'ambiente per il packaging
-ENV DEBFULLNAME="Bytehawks GitHub developer"
-ENV DEBEMAIL="developer@bytehawks.org"
+#ENV DEBFULLNAME="Bytehawks GitHub developer"
+#ENV DEBEMAIL="developer@bytehawks.org"
 
 # Variabili d'ambiente per gli strumenti di analisi
-ENV SONAR_SCANNER_HOME="/opt/sonar-scanner"
-ENV PATH="${SONAR_SCANNER_HOME}/bin:${PATH}"
+#ENV SONAR_SCANNER_HOME="/opt/sonar-scanner"
+#ENV PATH="${SONAR_SCANNER_HOME}/bin:${PATH}"
 
 # Crea utente dedicato per le build
 RUN groupadd -r builder && useradd -r -g builder -m -s /bin/bash builder \
@@ -229,6 +218,8 @@ ENV DEBFULLNAME="Bytehawks GitHub developer"
 ENV DEBEMAIL="developer@bytehawks.org"
 ENV TMPDIR="/home/builder/tmp"
 ENV HOME="/home/builder"
+ENV SONAR_SCANNER_HOME="/opt/sonar-scanner"
+ENV PATH="${SONAR_SCANNER_HOME}/bin:${PATH}"
 
 # Comando predefinito
 CMD ["/bin/bash"]

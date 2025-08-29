@@ -64,8 +64,8 @@ RUN apt-get update && apt-get install -y \
     python3-flake8-black \
     python3-pytest-flake8 \
     python3-pytest-flake8-path \
-    ython3-pytest \
-    ython3-pytest-cov \
+    python3-pytest \
+    python3-pytest-cov \
     # GitLab CI/CD tools
     openssh-client \
     rsync \

@@ -59,7 +59,13 @@ RUN apt-get update && apt-get install -y \
     qemu-utils \
     # AWS CLI dependencies
     python3 \
+    python3-full \
     python3-pip \
+    python3-flake8-black \
+    python3-pytest-flake8 \
+    python3-pytest-flake8-path \
+    ython3-pytest \
+    ython3-pytest-cov \
     # GitLab CI/CD tools
     openssh-client \
     rsync \
@@ -105,18 +111,19 @@ RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /
     && rm -rf /var/lib/apt/lists/*
 
 # Installa GitLab CLI (glab)
-#ARG GLAB_VERSION=1.67.0
-#RUN curl -s "https://gitlab.com/gitlab-org/cli/-/releases/v${GLAB_VERSION}/downloads/glab_${GLAB_VERSION}_darwin_amd64.tar.gz" | tar -xz -C /tmp \
-#    && mv /tmp/bin/glab /usr/local/bin/glab \
-#    && chmod +x /usr/local/bin/glab
+ARG GLAB_VERSION=1.67.0
+RUN wget -O glab.tar.gz "https://gitlab.com/gitlab-org/cli/-/releases/v${GLAB_VERSION}/downloads/glab_${GLAB_VERSION}_darwin_amd64.tar.gz" \
+    && tar -xzf glab.tar.gz -C /opt/glab \
+    && chmod +x /opt/glab/bin/glab \
+    && ln -s /opt/glab/bin/glab /usr/local/bin/glab
 
 # Installa SonarScanner CLI
-#ARG SONAR_SCANNER_VERSION=7.2.0.5079
-#RUN wget -O sonar-scanner.zip "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip" \
-#    && unzip sonar-scanner.zip -d /opt \
-#    && mv /opt/sonar-scanner-${SONAR_SCANNER_VERSION}-linux /opt/sonar-scanner \
-#    && rm sonar-scanner.zip \
-#    && ln -s /opt/sonar-scanner/bin/sonar-scanner /usr/local/bin/sonar-scanner
+ARG SONAR_SCANNER_VERSION=7.2.0.5079
+RUN wget -O sonar-scanner.zip "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux-x64.zip" \
+    && unzip sonar-scanner.zip -d /opt \
+    && mv /opt/sonar-scanner-${SONAR_SCANNER_VERSION}-linux-x64 /opt/sonar-scanner \
+    && rm sonar-scanner.zip \
+    && ln -s /opt/sonar-scanner/bin/sonar-scanner /usr/local/bin/sonar-scanner
 
 # Installa Trivy (vulnerability scanner)
 RUN wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor -o /usr/share/keyrings/trivy-archive-keyring.gpg \
@@ -134,11 +141,11 @@ RUN curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | 
 
 # Installa PMD (static analysis per Java/PHP/altri linguaggi)
 #ARG PMD_VERSION=7.16.0
-#RUN wget -O pmd.zip "https://github.com/pmd/pmd/releases/download/pmd_releases%2F${PMD_VERSION}/pmd-dist-${PMD_VERSION}-bin.zip" \
-#    && unzip pmd.zip -d /opt \
-#    && mv /opt/pmd-bin-${PMD_VERSION} /opt/pmd \
-#    && rm pmd.zip \
-#    && ln -s /opt/pmd/bin/pmd /usr/local/bin/pmd
+RUN wget -O pmd.zip "https://github.com/pmd/pmd/releases/download/pmd_releases%2F${PMD_VERSION}/pmd-dist-${PMD_VERSION}-bin.zip" \
+    && unzip pmd.zip -d /opt \
+    && mv /opt/pmd-bin-${PMD_VERSION} /opt/pmd \
+    && rm pmd.zip \
+    && ln -s /opt/pmd/bin/pmd /usr/local/bin/pmd
 
 # Installa Hadolint (Dockerfile linter)
 ARG HADOLINT_VERSION=v2.12.0
@@ -198,25 +205,14 @@ RUN ~/.cargo/bin/rustup component add \
     rust-src \
     && ~/.cargo/bin/cargo install cargo-deb
 
-# Installa strumenti per testing e quality gates
-RUN pip3 install --no-cache-dir \
-    pytest \
-    pytest-cov \
-    black \
-    flake8 \
-    bandit \
-    safety \
-    pre-commit \
-    semgrep
-    
 # Configura Git per l'utente builder
-RUN git config --global user.name "Builder User" \
-    && git config --global user.email "builder@localhost" \
+RUN git config --global user.name "Bytehawks GitHub autobuilder" \
+    && git config --global user.email "autobuild@bytehawks.org" \
     && git config --global init.defaultBranch main
 
 # Variabili d'ambiente per l'utente builder
-ENV DEBFULLNAME="Bytehawks GitHub developer"
-ENV DEBEMAIL="developer@bytehawks.org"
+ENV DEBFULLNAME="Bytehawks GitHub autobuilder"
+ENV DEBEMAIL="autobuild@bytehawks.org"
 ENV TMPDIR="/home/builder/tmp"
 ENV HOME="/home/builder"
 ENV SONAR_SCANNER_HOME="/opt/sonar-scanner"

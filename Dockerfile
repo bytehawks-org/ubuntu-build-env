@@ -105,10 +105,10 @@ RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /
     && rm -rf /var/lib/apt/lists/*
 
 # Installa GitLab CLI (glab)
-ARG GLAB_VERSION=1.67.0
-RUN curl -s "https://gitlab.com/gitlab-org/cli/-/releases/v${GLAB_VERSION}/downloads/glab_${GLAB_VERSION}_darwin_amd64.tar.gz" | tar -xz -C /tmp \
-    && mv /tmp/bin/glab /usr/local/bin/glab \
-    && chmod +x /usr/local/bin/glab
+#ARG GLAB_VERSION=1.67.0
+#RUN curl -s "https://gitlab.com/gitlab-org/cli/-/releases/v${GLAB_VERSION}/downloads/glab_${GLAB_VERSION}_darwin_amd64.tar.gz" | tar -xz -C /tmp \
+#    && mv /tmp/bin/glab /usr/local/bin/glab \
+#    && chmod +x /usr/local/bin/glab
 
 # Installa SonarScanner CLI
 ARG SONAR_SCANNER_VERSION=7.2.0.5079

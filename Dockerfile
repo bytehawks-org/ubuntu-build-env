@@ -111,11 +111,11 @@ RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /
     && rm -rf /var/lib/apt/lists/*
 
 # Installa GitLab CLI (glab)
-ARG GLAB_VERSION=1.67.0
-RUN wget -O glab.tar.gz "https://gitlab.com/gitlab-org/cli/-/releases/v${GLAB_VERSION}/downloads/glab_${GLAB_VERSION}_darwin_amd64.tar.gz" \
-    && tar -xzf glab.tar.gz -C /opt/glab \
-    && chmod +x /opt/glab/bin/glab \
-    && ln -s /opt/glab/bin/glab /usr/local/bin/glab
+#ARG GLAB_VERSION=1.67.0
+#RUN wget -O glab.tar.gz "https://gitlab.com/gitlab-org/cli/-/releases/v${GLAB_VERSION}/downloads/glab_${GLAB_VERSION}_darwin_amd64.tar.gz" \
+#    && tar -xzf glab.tar.gz -C /opt/glab \
+#    && chmod +x /opt/glab/bin/glab \
+#    && ln -s /opt/glab/bin/glab /usr/local/bin/glab
 
 # Installa SonarScanner CLI
 ARG SONAR_SCANNER_VERSION=7.2.0.5079
@@ -139,14 +139,6 @@ RUN curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh |
 # Installa Syft (SBOM generator)
 RUN curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
 
-# Installa PMD (static analysis per Java/PHP/altri linguaggi)
-#ARG PMD_VERSION=7.16.0
-RUN wget -O pmd.zip "https://github.com/pmd/pmd/releases/download/pmd_releases%2F${PMD_VERSION}/pmd-dist-${PMD_VERSION}-bin.zip" \
-    && unzip pmd.zip -d /opt \
-    && mv /opt/pmd-bin-${PMD_VERSION} /opt/pmd \
-    && rm pmd.zip \
-    && ln -s /opt/pmd/bin/pmd /usr/local/bin/pmd
-
 # Installa Hadolint (Dockerfile linter)
 ARG HADOLINT_VERSION=v2.12.0
 RUN wget -O /usr/local/bin/hadolint "https://github.com/hadolint/hadolint/releases/download/${HADOLINT_VERSION}/hadolint-Linux-x86_64" \
@@ -162,17 +154,6 @@ RUN wget -O codeql.zip "https://github.com/github/codeql-cli-binaries/releases/d
     && unzip codeql.zip -d /opt \
     && rm codeql.zip \
     && ln -s /opt/codeql/codeql /usr/local/bin/codeql
-
-# Crea directory di lavoro
-#WORKDIR /workspace
-
-# Variabili d'ambiente per il packaging
-#ENV DEBFULLNAME="Bytehawks GitHub developer"
-#ENV DEBEMAIL="developer@bytehawks.org"
-
-# Variabili d'ambiente per gli strumenti di analisi
-#ENV SONAR_SCANNER_HOME="/opt/sonar-scanner"
-#ENV PATH="${SONAR_SCANNER_HOME}/bin:${PATH}"
 
 # Crea utente dedicato per le build
 RUN groupadd -r builder && useradd -r -g builder -m -s /bin/bash builder \

@@ -65,7 +65,7 @@ RUN groupadd -r builder && useradd -r -g builder -m -s /bin/bash builder \
     && chown -R builder:builder /home/builder \
     && chmod -R 775 /home/builder \
     # Configure fakeroot
-    && mkdir -p /home/builder/.fakeroot
+    && mkdir -p /home/builder/.fakeroot \
     && chown builder:builder /home/builder/.fakeroot \
     && chmod 775 /home/builder/.fakeroot
 

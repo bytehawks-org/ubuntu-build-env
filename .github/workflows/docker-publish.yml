@@ -18,7 +18,7 @@ on:
 env:
   # Use docker.io for Docker Hub if empty
   #REGISTRY: ghcr.io
-  REGISTRY: registry.bytehawks.org/testing
+  REGISTRY: registry.bytehawks.org/cicd-images
   # github.repository as <account>/<repo>
   IMAGE_NAME: ${{ github.repository }}
 
@@ -61,8 +61,8 @@ jobs:
           registry: ${{ env.REGISTRY }}
           #username: ${{ github.actor }}
           #password: ${{ secrets.GITHUB_TOKEN }}
-          username: ${{ secrets.NEXUS_USERNAME }}
-          password: ${{ secrets.NEXUS_PASSWORD }}
+          username: ${{ secrets.HARBOR_ROBOT_USERNAME }}
+          password: ${{ secrets.HARBOR_ROBOT_PASSWORD }}
 
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action

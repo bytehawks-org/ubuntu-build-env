@@ -2,7 +2,11 @@
 # Base: Ubuntu LTS for .deb packaging compatibility
 FROM ubuntu:24.04
 
-ARG OS_ARCH=amd64
+#ARG OS_ARCH=amd64
+
+ARG TARGETPLATFORM
+ARG TARGETOS
+ARG TARGETARCH
 
 # Avoid interactive prompts during installation
 ENV DEBIAN_FRONTEND=noninteractive

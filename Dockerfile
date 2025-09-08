@@ -12,7 +12,7 @@ ARG TARGETARCH
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Update and upgrade system and install base dependencies
-RUN apt-get update && apt-get dist-upgrade -y && apt-get install --no-install-recommends --no-install-suggests -y \
+RUN apt-get update && apt-get dist-upgrade -y && apt-get install --no-install-recommends -y \
     # General utilities
     curl \
     wget \
@@ -56,7 +56,8 @@ RUN apt-get update && apt-get dist-upgrade -y && apt-get install --no-install-re
     fakeroot \
     lintian \
     quilt \
-    dpkg-dev
+    dpkg-dev \
+    ansible
 
 # Create dedicated user for build
 RUN groupadd -r builder && useradd -r -g builder -m -s /bin/bash builder \
